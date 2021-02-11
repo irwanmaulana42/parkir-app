@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Modal from 'react-modal';
+import { useAlert } from 'react-alert'
 
 import './style.css';
 
@@ -20,6 +21,7 @@ const customStyles = {
 Modal.setAppElement('#root');
 
 const ManageUsers = (props) => {
+  const alert = useAlert();
   const [users, setUsers] = useState([]);
 
   const [name, setName] = useState('');
@@ -49,6 +51,8 @@ const ManageUsers = (props) => {
     const getData = await UserService.getUsers();
     if (getData.code === 200) {
       setUsers(getData.message);
+    }else{
+      alert.show(getData.message);
     }
   }
 
@@ -82,6 +86,9 @@ const ManageUsers = (props) => {
       setName('');
       setUsername('');
       getUsers();
+      alert.show(data.message);
+    }else{
+      alert.show(data.message);
     }
   }
 
@@ -89,6 +96,9 @@ const ManageUsers = (props) => {
     const data = await UserService.deleteUser(id);
     if (data.code === 200) {
       getUsers();
+      alert.show(data.message);
+    }else{
+      alert.show(data.message);
     }
   }
 
@@ -104,15 +114,19 @@ const ManageUsers = (props) => {
     if (data.code === 200) {
       getUsers();
       setIsOpen(false);
+      alert.show(data.message);
+    }else{
+      alert.show(data.message);
     }
   }
 
   const confirmUser = async(id) => {
-    console.log('id', id);
     const data = await UserService.confirmUser(id);
-    console.log('confirmUsers', data);
     if (data.code === 200) {
       getUsers();
+      alert.show(data.message);
+    }else{
+      alert.show(data.message);
     }
   }
 
