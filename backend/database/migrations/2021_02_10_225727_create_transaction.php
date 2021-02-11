@@ -17,6 +17,7 @@ class CreateTransaction extends Migration
             $table->id();
             $table->string('plat_nomor');
             $table->string('jenis_kendaraan')->nullanle();
+            $table->string('merk')->nullable();
             $table->string('kode');
             $table->dateTime('jam_masuk');
             $table->dateTime('jam_keluar')->nullable();

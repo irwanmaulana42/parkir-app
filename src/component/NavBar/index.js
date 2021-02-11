@@ -24,21 +24,21 @@ const NavBar = (props) => {
                       Manage User
                   </a>
               </li>
-              <li>
-                <a href="/labels">
-                  <span className="uk-icon uk-margin-small-right" uk-icon="icon: star"></span>
-                      Manage Label
-                  </a>
-              </li>
               </>
               )
             }
             <li>
               <a href="/">
                 <span className="uk-icon uk-margin-small-right" uk-icon="icon: star"></span>
-                    Manage Todos
+                    E-Parkir
                 </a>
             </li>
+            <li>
+                <a href="/history">
+                  <span className="uk-icon uk-margin-small-right" uk-icon="icon: star"></span>
+                      Report
+                  </a>
+              </li>
             <li style={{
               position: 'absolute',
               right: 0

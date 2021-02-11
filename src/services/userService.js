@@ -185,6 +185,52 @@ class UserService {
       })
   }
 
+  kendaraanMasuk(plat_nomor, jenis_kendaraan, merk) {
+    const params = new URLSearchParams();
+    params.append('plat_nomor', plat_nomor);
+    params.append('jenis_kendaraan', jenis_kendaraan);
+    params.append('merk', merk);
+    return axios.post(API_URL + '/transaction/store', params, {
+      headers: authHeader(),
+    })
+      .then((response) => {
+        return Promise.resolve(response.data);
+      })
+  }
+
+  kendaraanKeluar(kode) {
+    const params = new URLSearchParams();
+    params.append('kode', kode);
+    return axios.post(API_URL + '/transaction/edit', params, {
+      headers: authHeader(),
+    })
+      .then((response) => {
+        return Promise.resolve(response.data);
+      })
+  }
+
+  getHistoryTransaction(page = 1, limit = 10) {
+    return axios.get(API_URL + '/transaction/history', {
+      headers: authHeader(),
+      params: {
+        page: page, 
+        limit: limit
+      }
+    })
+      .then((response) => {
+        return Promise.resolve(response.data)
+      })
+  }
+
+  getReportCOuntKendaraan() {
+    return axios.get(API_URL + '/transaction/', {
+      headers: authHeader(),
+    })
+      .then((response) => {
+        return Promise.resolve(response.data)
+      })
+  }
+
 }
 
 export default new UserService();

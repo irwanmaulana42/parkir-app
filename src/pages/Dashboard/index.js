@@ -1,177 +1,171 @@
-import React, { useState, useEffect } from 'react'
+import React, { Component, useState, useEffect } from 'react'
 import Modal from 'react-modal';
+import { withAlert } from 'react-alert'
 
 import './style.css';
 
 import NavBar from './../../component/NavBar';
 import UserService from './../../services/userService';
 
-const customStyles = {
-  content: {
-    top: '50%',
-    left: '50%',
-    right: 'auto',
-    bottom: 'auto',
-    marginRight: '-50%',
-    transform: 'translate(-50%, -50%)',
-    width: '700px',
-  }
-};
-Modal.setAppElement('#root');
-const Dashboard = (props) => {
-  const [todos, setTodos] = useState([]);
-  const [labels, setLabels] = useState([]);
-  const [add, setAdd] = useState('');
-  const [addLabel, setAddLabel] = useState('');
-  const [modalIsOpen, setIsOpen] = useState(false);
+class Dashboard extends Component {
+  constructor(props) {
+    super(props);
 
-  const [idEdit, setIdEdit] = useState(0);
-  const [addEdit, setAddEdit] = useState('');
-  const [labelEdit, setLabelEdit] = useState(0);
+    this.onChangePlatNomor = this.onChangePlatNomor.bind(this);
+    this.onChangeMerk = this.onChangeMerk.bind(this);
+    this.onChangeJenisKendaraan = this.onChangeJenisKendaraan.bind(this);
+    this.onChangeKode = this.onChangeKode.bind(this);
 
-  function openModal(data) {
-    setIdEdit(data.id);
-    setAddEdit(data.task);
-    setLabelEdit(data.label_id);
-    setIsOpen(true);
+    this.state = {
+      failed: false,
+      message: "",
+      plat_nomor: "",
+      merk: "",
+      kode: "",
+      jenis_kendaraan: "",
+      type: "error",
+      status: true,
+      title: "Hey! this is an error.",
+    };
   }
 
-  function closeModal() {
-    setIsOpen(false);
+  onChangePlatNomor = (e) => {
+    this.setState({
+      plat_nomor: e.target.value
+    });
   }
 
-  const getLabels = async () => {
-    const getLabels = await UserService.getLabels();
-    if (getLabels.code === 200) {
-      setLabels(getLabels.message);
-    }
+  onChangeMerk = (e) => {
+    this.setState({
+      merk: e.target.value
+    });
   }
 
-  const getTodos = async () => {
-    const getTodos = await UserService.getTodos();
-    if (getTodos.code === 200) {
-      setTodos(getTodos.message);
-    }
+  onChangeJenisKendaraan = (e) => {
+    this.setState({
+      jenis_kendaraan: e.target.value
+    });
   }
 
-  const onChangeLabel = (e) => {
-    setAddLabel(e.target.value);
-    setLabelEdit(e.target.value);
+  onChangeKode = (e) => {
+    this.setState({
+      kode: e.target.value
+    });
   }
 
-  const onChangeAdd = (e) => {
-    setAdd(e.target.value);
-  }
-
-  const handleSubmitAdd = async () => {
-    if (add.trim() === '' && addLabel.trim() === '') {
+  handleSubmitAdd = async () => {
+    const { plat_nomor, merk, jenis_kendaraan } = this.state;
+    if (plat_nomor === '' || merk === '' || jenis_kendaraan === '') {
+      this.props.alert.show("Harap isi kolom");
       return;
     }
 
-    const data = await UserService.postTodos(add, addLabel);
+    const data = await UserService.kendaraanMasuk(plat_nomor, jenis_kendaraan, merk);
     if (data.code === 200) {
-      setAdd('');
-      getTodos();
+      this.props.alert.show(data.message);
+      this.setState({
+        plat_nomor: "",
+        merk: ""
+      });
+    }else{
+      this.props.alert.show(data.message);
     }
   }
 
-  const handleDelete = async (id) => {
-    const data = await UserService.deleteTodos(id);
-    if (data.code === 200) {
-      getTodos();
-    }
-  }
-
-  const handleCompleted = async (id, e) => {
-    let setCompleted = (e.target.checked) ? 1 : 0;
-    const data = await UserService.setCompletedTodos(setCompleted, id);
-    if (data.code === 200) {
-      getTodos();
-    }
-  }
-
-  const handleEditTodos = async () => {
-    if (addEdit.trim() === '') {
+  handleGo = async() => {
+    const { kode } = this.state;
+    if(kode === ''){
+      this.props.alert.show("Harap isi kolom");
       return;
     }
-    const data = await UserService.editTodos(addEdit, labelEdit, idEdit);
-    console.log('edit', data);
-    if (data.code === 200) {
-      setIsOpen(false);
-      getTodos();
+
+    const data = await UserService.kendaraanKeluar(kode);
+    if(data.code === 200){
+      this.setState({
+        kode: ""
+      });
+      this.props.alert.show(data.message);
+    }else{
+      this.props.alert.show(data.message);
     }
+    console.log(data);
   }
 
-  useEffect(() => {
-    getTodos();
-    getLabels();
-  }, [])
-
-  return (
-    <div>
-      <NavBar />
-      <div className="uk-container uk-container-xlarge uk-margin-top">
-        <div className="uk-margin uk-card uk-card-default uk-card-body">
-          <h3>TO DO LIST</h3>
-          <div className="uk-flex">
-            <input className="uk-input" type="text" placeholder="Add" value={add} onChange={onChangeAdd.bind(this)} />
-            <select className="uk-select" name="label" onChange={onChangeLabel}>
-              <option value="">-</option>
-              {labels.length > 0 && labels.map((item) => {
-                return (
-                  <option key={item.id} value={item.id}>{item.label}</option>
-                )
-              })}
-            </select>
-            <button className="uk-button uk-button-primary" onClick={handleSubmitAdd}>Submit</button>
-          </div>
-          <hr />
-          <Modal
-            isOpen={modalIsOpen}
-            onRequestClose={closeModal}
-            style={customStyles}
-            contentLabel="Example Modal"
-          >
+  render() {
+    return (
+      <div>
+        <NavBar />
+        <div className="uk-container uk-container-xlarge uk-margin-top">
+          <div className="uk-margin uk-card uk-card-default uk-card-body">
+            <h3>E - Parkir</h3>
+      
             <div className="uk-flex">
-              <input className="uk-input" type="text" placeholder="Add" value={addEdit} onChange={onChangeAdd.bind(this)} />
-              <select className="uk-select" defaultValue={labelEdit} onChange={onChangeLabel}>
-                {labels.length > 0 && labels.map((item) => {
-                  return (
-                    <option key={item.id} value={item.id} >{item.label}</option>
-                  )
-                })}
-              </select>
-              <button className="uk-button uk-button-danger" onClick={handleEditTodos}>Edit</button>
-            </div>
-          </Modal>
-          <ul className="uk-list uk-list-striped">
-            {todos.length > 0 && todos.map((item) => {
-              return (
-                <li key={item.id}>
-                  <div className="uk-flex uk-flex-between">
-                    <div className="uk-margin uk-grid-small uk-child-width-auto uk-grid" style={{ marginBottom: 0 }}>
-                      <label className={item.completed === 1 ? 'completed' : ''}>
-                        <input className="uk-checkbox" onChange={handleCompleted.bind(this, item.id)} type="checkbox" defaultChecked={item.completed === 1 ? true : false} /> {item.task}
-                      </label>
-                    </div>
-                    <div>
-                      {item.label_id !== null && (
-                        <span className="uk-label">{item.label}</span>
-                      )}
-                    </div>
-                    <div>
-                      <button className="uk-button uk-button-danger uk-button-small" uk-icon="more-vertical" onClick={openModal.bind(this, item)}></button>
-                      <button className="uk-button uk-button-primary uk-button-small" uk-icon="close" onClick={handleDelete.bind(this, item.id)}></button>
+              <div className="uk-card uk-card-default uk-card-body uk-width-1-2@m">
+                <h3 className="uk-card-title">Kendaraan Masuk</h3>
+                <div className="uk-form-stacked">
+                  <div className="uk-margin">
+                    <label className="uk-form-label" htmlFor="form-stacked-text">Plat Nomor</label>
+                    <div className="uk-form-controls">
+                      <input
+                        className="uk-input"
+                        id="form-stacked-text"
+                        type="text"
+                        placeholder="Plat Nomor"
+                        value={this.state.plat_nomor}
+                        onChange={this.onChangePlatNomor}
+                      />
                     </div>
                   </div>
-                </li>
-              );
-            })}
-          </ul>
+                  <div className="uk-margin">
+                    <label className="uk-form-label" htmlFor="form-stacked-text">Merk</label>
+                    <div className="uk-form-controls">
+                      <input
+                        className="uk-input"
+                        id="form-stacked-text"
+                        type="text"
+                        placeholder="Merk"
+                        value={this.state.merk}
+                        onChange={this.onChangeMerk}
+                      />
+                    </div>
+                  </div>
+                  <div className="uk-margin">
+                    <div className="uk-form-label">Jenis Kendaraan</div>
+                    <div className="uk-form-controls">
+                      <label><input className="uk-radio" type="radio" name="kendaraan" value="motor" onChange={this.onChangeJenisKendaraan} /> Motor</label><br />
+                      <label><input className="uk-radio" type="radio" name="kendaraan" value="mobil" onChange={this.onChangeJenisKendaraan} /> Mobil</label><br />
+                      <label><input className="uk-radio" type="radio" name="kendaraan" value="truk/other" onChange={this.onChangeJenisKendaraan} /> Truk/ Other</label>
+                    </div>
+                  </div>
+                  <button className="uk-button uk-button-danger" onClick={this.handleSubmitAdd}>Add</button>
+                </div>
+              </div>
+              <div className="uk-card uk-card-default uk-card-body uk-width-1-2@m">
+                <h3 className="uk-card-title">Kendaraan Keluar</h3>
+                <div className="uk-form-stacked">
+                  <div className="uk-margin">
+                    <label className="uk-form-label" htmlFor="form-stacked-text">Kode</label>
+                    <div className="uk-form-controls">
+                      <input
+                        className="uk-input"
+                        id="form-stacked-text"
+                        type="text"
+                        placeholder="Kode"
+                        value={this.state.kode}
+                        onChange={this.onChangeKode}
+                      />
+                    </div>
+                  </div>
+                  <button className="uk-button uk-button-danger" onClick={this.handleGo}>Go</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 }
 
-export default Dashboard;
+export default withAlert()(Dashboard);
